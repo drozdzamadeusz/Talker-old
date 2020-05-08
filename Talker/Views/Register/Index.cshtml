@@ -1,0 +1,154 @@
+﻿
+@{
+    ViewData["Title"] = "Register";
+}
+
+
+<div class="window-buttons">
+    <div class="window-menu-area">
+        <div class="window-scrollable scrollable"></div>
+        <div class="window-buttons-contianer">
+            <!--<div id="button-mi" class="window-button"><i class="zmdi zmdi-window-minimize"></i></div>-->
+            <!--<div id="button-ma" class="window-button"><i class="zmdi zmdi-window-maximize"></i></div>-->
+            <div id="button-cl" class="window-button"><i class="zmdi zmdi-close"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="loader-container" id="loader" style="display:none;">
+    <div class="loader-content" id="loader-content">
+        <div class="lds-dual-ring"></div>
+        <div class="lds-text">Loading...</div>
+    </div>
+</div>
+
+<div class="limiter">
+    <div class="container-login100">
+        <div class="wrap-login100">
+            <form class="login100-form validate-form" id="login-form">
+
+                <span class="login100-form-title p-b-26" style="line-height: 15px;">Talker</span>
+                <h6 style="padding: 0px 0 40px 0;" class="fs-14 text-center">Register a new account</h6>
+
+                <div class="wrap-input100 validate-input" data-validate="Enter 3 to 50 characters">
+                    <input class="input100" type="text" name="first-name" id="first-name">
+                    <span class="focus-input100" data-placeholder="First Name"></span>
+                </div>
+
+                <div class="wrap-input100 validate-input" data-validate="Enter 3 to 50 characters">
+                    <input class="input100" type="text" name="last-name" id="last-name">
+                    <span class="focus-input100" data-placeholder="Last Name"></span>
+                </div>
+
+                <div class="wrap-input100 validate-input" data-validate="Enter 3 to 12 characters">
+                    <input class="input100" type="text" name="username" id="username">
+                    <span class="focus-input100" data-placeholder="Username"></span>
+                </div>
+
+                <div class="wrap-input100 validate-input" data-validate="Valid email is: a@b.c">
+                    <input class="input100" type="text" name="email" id="email">
+                    <span class="focus-input100" data-placeholder="Email Address"></span>
+                </div>
+
+                <div class="wrap-input100 validate-input" data-validate="Enter 4 to 20 characters">
+                    <span class="btn-show-pass">
+                        <i class="zmdi zmdi-eye"></i>
+                    </span>
+                    <input class="input100" type="password" name="password" id="password">
+                    <span class="focus-input100" data-placeholder="Password"></span>
+                </div>
+
+                <div class="container-login100-form-btn">
+                    <div class="wrap-login100-form-btn">
+                        <div class="login100-form-bgbtn"></div>
+                        <button class="login100-form-btn" id="login-btn">
+                            Register
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    (function ($) {
+
+        const { ipcRenderer } = require("electron");
+
+
+
+        var loader = $('#loader');
+        var loaderContent = $("#loader-content");
+
+
+        var input = $('.validate-input .input100');
+
+
+        function startLoadingAnim() {
+            loader.show();
+            loaderContent.html(defaultLoaderSpinner());
+        }
+
+        $('.validate-form').on('submit', async (e) => {
+
+            var check = true;
+
+            for (var i = 0; i < input.length; i++) {
+                if (validate(input[i]) == false) {
+                    showValidate(input[i]);
+                    check = false;
+                }
+            }
+
+            if (check) {
+
+                startLoadingAnim();
+
+                var userCredits = {
+                    username: $("#username").val(),
+                    password: $("#password").val(),
+                    email: $("#email").val(),
+                    firstName: $("#first-name").val(),
+                    lastName: $("#last-name").val()
+                };
+
+                console.log(userCredits);
+
+                ipcRenderer.send("auth-register", userCredits);
+            }
+
+            e.preventDefault();
+        });
+
+
+
+
+
+        ipcRenderer.on("auth-register-reply", (sender, data) => {
+
+            var jsonData = JSON.parse(data);
+
+            if (jsonData.errortype != null) {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "error"));
+            } else {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "info"));
+
+                $(document).on("click", ".error-ok-btn", () => {
+                    ipcRenderer.send("close-window", "Register");
+                });
+                
+            }
+
+            loader.show();
+            console.log(data);
+        });
+
+
+        $("#button-cl").on("click", function () {
+            ipcRenderer.send("close-window", "Register");
+        });
+
+
+
+    })(jQuery);
+</script>

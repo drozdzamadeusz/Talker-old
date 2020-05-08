@@ -1,0 +1,189 @@
+﻿@{
+    ViewData["Title"] = "Login Page!";
+}
+<!--<template class="task-template">-->
+
+<div class="window-buttons">
+    <div class="window-menu-area">
+        <div class="window-scrollable scrollable"></div>
+        <div class="window-buttons-contianer">
+            <!--<div id="button-mi" class="window-button"><i class="zmdi zmdi-window-minimize"></i></div>-->
+            <!--<div id="button-ma" class="window-button"><i class="zmdi zmdi-window-maximize"></i></div>-->
+            <div id="button-cl" class="window-button"><i class="zmdi zmdi-close"></i></div>
+        </div>
+    </div>
+</div>
+
+
+<div class="loader-container" id="loader" style="display:none;">
+    <div class="loader-content" id="loader-content">
+        <div class="lds-dual-ring"></div>
+        <div class="lds-text">Loading...</div>
+    </div>
+</div>
+
+<div class="limiter">
+    <div class="container-login100">
+        <div class="wrap-login100">
+            <form class="login100-form validate-form" id="login-form">
+                <span class="login100-form-title p-b-48">
+                    <i class="zmdi zmdi-graphic-eq"></i>
+                </span>
+                <span class="login100-form-title p-b-26" style="line-height: 15px;">Talker</span>
+                <h6 style="padding: 0px 0 40px 0;" class="fs-14 text-center">Simple communicator</h6>
+                <br class="Apple-interchange-newline">
+                <div class="wrap-input100 validate-input" data-validate="Enter login">
+                    <input class="input100" type="text" name="username" id="username">
+                    <span class="focus-input100" data-placeholder="Login"></span>
+                </div>
+
+                <div class="wrap-input100 validate-input" data-validate="Enter password">
+                    <span class="btn-show-pass">
+                        <i class="zmdi zmdi-eye"></i>
+                    </span>
+                    <input class="input100" type="password" name="password" id="password">
+                    <span class="focus-input100" data-placeholder="Password"></span>
+                </div>
+
+                <div class="container-login100-form-btn">
+                    <div class="wrap-login100-form-btn">
+                        <div class="login100-form-bgbtn"></div>
+                        <button class="login100-form-btn" id="login-btn">Login</button>
+                    </div>
+                </div>
+
+                <div class="text-center p-t-30">
+                    <span class="txt1">Don’t have an account?</span> <a class="txt2" href="#" id="button-register-user">Sign Up</a>
+
+
+                    <!---->
+                    <!-- syf -->
+                    <div class="dis-none">
+                        <span class="demo-response" id="manage-window-reply"></span><br />
+                        <!--<button class="" id="manage-window">Add window</button>-->
+
+
+
+                        <button class="demo-button dis-none" id="focus-on-modal-window">Focus</button>
+                    </div>
+                    <!-- syf -->
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    (function ($) {
+        "use strict";
+
+        const { ipcRenderer } = require("electron");
+
+        document.getElementById("button-cl").addEventListener("click", () => {
+            ipcRenderer.send("button-cl");
+
+        });
+
+        document.getElementById("button-register-user").addEventListener("click", () => {
+            ipcRenderer.send("register-user");
+        });
+
+
+
+
+
+        var loader = $('#loader');
+        var loaderContent = $("#loader-content");
+
+
+        var input = $('.validate-input .input100');
+
+
+        function startLoadingAnim() {
+            loader.show();
+            loaderContent.html(defaultLoaderSpinner());
+        }
+
+        $('.validate-form').on('submit', async (e) => {
+
+            var check = true;
+
+            for (var i = 0; i < input.length; i++) {
+                if (validate(input[i]) == false) {
+                    showValidate(input[i]);
+                    check = false;
+                }
+            }
+
+            if (check) {
+
+                startLoadingAnim();
+
+                var userCredits = { username: $("#username").val(), password: $("#password").val() };
+
+                console.log(userCredits);
+
+                ipcRenderer.send("auth-login", userCredits);
+            }
+
+            e.preventDefault();
+        });
+
+
+
+
+
+        ipcRenderer.on("auth-login-reply", (sender, data) => {
+
+            var jsonData = JSON.parse(data);
+
+            if (jsonData.errortype != null) {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "error"));
+                loader.show();
+            } else {
+                loader.hide();
+            }
+
+            console.log(data);
+        });
+
+
+
+
+
+
+        ipcRenderer.on("manage-window-reply", (sender, data) => {
+                        document.getElementById("manage-window-reply").innerText = data;
+        });
+
+
+
+
+        document.getElementById('focus-on-modal-window').addEventListener("click", () => {
+                        ipcRenderer.send("listen-to-window-set-focus");
+        });
+
+        ipcRenderer.on("listen-to-window-focus", (sender, data) => {
+            const focusModalBtn = document.getElementById('focus-on-modal-window');
+            focusModalBtn.classList.add('dis-none');
+            focusModalBtn.classList.remove('dis-block');
+        });
+
+        ipcRenderer.on("listen-to-window-blur", (sender, data) => {
+            const focusModalBtn = document.getElementById('focus-on-modal-window');
+            focusModalBtn.classList.add('dis-block');
+            focusModalBtn.classList.remove('dis-none');
+        });
+
+
+
+        document.getElementById("button-register-user").addEventListener("click", () => {
+            ipcRenderer.send("open-register-dialog");
+        });
+
+
+
+
+    })(jQuery);
+</script>
+
+<!--</template>-->

@@ -1,0 +1,253 @@
+﻿@{
+    ViewData["Title"] = "Talker";
+}
+
+<div class="window-buttons main-window">
+    <div class="window-menu-area">
+        <div class="window-scrollable scrollable"></div>
+        <div class="window-buttons-contianer">
+
+            <div id="button-mi" class="window-button"><i class="zmdi zmdi-window-minimize"></i></div>
+            <!--<div id="button-ma" class="window-button"><i class="zmdi zmdi-window-maximize"></i></div>-->
+            <div id="button-cl" class="window-button"><i class="zmdi zmdi-close"></i></div>
+        </div>
+    </div>
+</div>
+
+<div class="loader-container" id="loader" style="">
+    <div class="loader-content" id="loader-content">
+        <div class="lds-dual-ring"></div>
+        <div class="lds-text">Loading...</div>
+    </div>
+</div>
+
+
+<div class="limiter">
+    <div class="container-login100 container-main">
+        <div class="wrap-login100 wrap-logged">
+            <div class="user-panel-container">
+                <div class="user-avatar">
+                    <img class="user-avatar-image" id="user-avatar-image" src="https://i.pravatar.cc/200">
+                </div>
+                <div class="user-info-panel ">
+                    <div class="user-nick-title">
+                        <span id="user-nick-title-text"></span>
+                    </div>
+                    <div class="user-description text-left">
+                        <span id="user-description-text" class=""></span>
+                    </div>
+                </div>
+                <div class="user-status-changer user-control-buttons">
+                    <span class="status-down"><i class="zmdi zmdi-caret-down"></i></span>
+                    <!--<span class="status-online" id="user-status"><i class="zmdi zmdi-circle"></i></span>-->
+
+
+                    <span class="user-status-holder" id="user-status-holder"></span>
+                    <div class=" user-control-buttons-panel">
+                        <ul>
+                            <li><a href="#" id="set-status-online" class="set-status-item"><i class="zmdi zmdi-circle"></i>Online</a></li>
+                            <li><a href="#" id="set-status-letstalk" class="set-status-item"><i class="zmdi zmdi-flower"></i>Let’s talk</a></li>
+                            <li><a href="#" id="set-status-idle" class="set-status-item"><i class="zmdi zmdi-brightness-2"></i>Idle</a></li>
+                            <li><a href="#" id="set-status-do-not-distirb" class="set-status-item"><i class="zmdi zmdi-minus-circle"></i>Do Not Disturb</a></li>
+                            <li><a href="#" id="set-status-invisible" class="set-status-item"><i class="zmdi zmdi-dot-circle"></i>Offline</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="colorful-separator"></div>
+            <div class="w-full friends-contacts-form user-panel-container" id="contacts-form">
+            </div>
+            <div class="controls">
+                <a class="normal-btn-outline" id="add-friend" href="/" data-remodal-target="add-a-friend-modal">
+                    <i class="zmdi  zmdi-plus"></i>
+                    Add a friend
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="remodal" data-remodal-id="add-a-friend-modal">
+    <button data-remodal-action="close" class="remodal-close"></button>
+    <h3>Add a friend</h3>
+    <label for="new-friend-input">Enter username or e-mail</label>
+    <input type="text" class="full-width-border" id="new-friend-input" name="new-friend-input"><br><br>
+
+    <div class="modal-rigth-buttons">
+        <button data-remodal-action="confirm" class="remodal-confirm" id="new-friend-btn-confirm">OK</button>
+        <button data-remodal-action="cancel" class="remodal-cancel" id="new-friend-btn-canc">Cancel</button>
+    </div>
+</div>
+
+<script>
+
+
+    (function ($) {
+
+        const { ipcRenderer } = require("electron");
+
+
+        var loader = $('#loader');
+        var loaderContent = $("#loader-content");
+
+
+        $(".delete-user-from-list").on("click", function (e) {
+            e.preventDefault();
+
+            var userId = $(this).attr('user-id');
+            alert(userId);
+            ipcRenderer.send("delete-from-friends", userId);
+        });
+
+
+        ipcRenderer.on("delete-from-friends-reply", (sender, data) => {
+
+
+        });
+
+
+
+        $(document).on('opening', '.remodal', function () {
+            $("#new-friend-input").val("");
+        });
+
+
+        $("#new-friend-btn-confirm").on("click", function () {
+            ipcRenderer.send("add-new-friend", $("#new-friend-input").val());
+        });
+
+
+        ipcRenderer.on("add-new-friend-reply", (sender, data) => {
+
+            var jsonData = JSON.parse(data);
+
+            if (jsonData.errortype != null) {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "error"));
+            } else {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "info"));
+            }
+
+            loader.show();
+
+            console.log(data);
+
+        });
+
+        ipcRenderer.on("user-profile-reply", (sender, data) => {
+            console.log(data);
+
+            setTimeout(async function () { loader.hide(); }, 1500);
+
+            var profileData = JSON.parse(data);
+
+            $("#user-nick-title-text").html(profileData.username);
+
+            if (profileData.description != null) {
+                $("#user-description-text").html(profileData.description);
+            } else {
+                $("#user-description-text").html("Enter your description here...");
+            }
+
+
+            if (profileData.image != null) {
+                $("#user-avatar-image").attr("src", profileData.image);
+            } else {
+            }
+
+            if (profileData.status != null) {
+                $("#user-status-holder").html(userStatusIcon(profileData.status, false));
+            } else {
+                $("#user-status-holder").html(userStatusIcon(0, false));
+            }
+
+            if (Object.keys(profileData.contacts).length == 0) {
+                if ($("#contacts-form").find(".no-contacts-info-container").length < 1)
+                    $("#contacts-form").append('<h5 class="no-contacts-info-container"><i class="zmdi zmdi-mood-bad no-contacts-icon"></i><br><span class="no-contacts-text">You have not added any friends yet</span></h5>');
+            } else {
+                profileData.contacts.forEach(
+                    e => {
+
+                        if ($("#contacts-form").find("friend[data-user-id=" + e.id + "]").length < 1)
+                            $("#contacts-form").append(addFirendToContactsList(e))
+
+                    });
+            }
+
+        });
+
+
+
+        $('body').on('click', '.contact-item', async function (e) {
+            var userId = $(this).data("user-id");
+
+            ipcRenderer.send("show-user-conversation-chat", userId);
+        });
+
+
+
+
+
+        async function getUserProfileData() {
+            ipcRenderer.send("user-profile");
+        }
+
+        getUserProfileData();
+
+
+
+        let echoSocketUpdaterInit = async () => {
+            ipcRenderer.send("echo-socket-updater-init");
+        }
+
+        echoSocketUpdaterInit();
+
+
+        let echoSocketUpdater = async () => {
+            ipcRenderer.send("echo-socket-updater");
+        }
+
+
+        setInterval(async () => {
+            echoSocketUpdater();
+        }, 2500);
+
+
+
+        ipcRenderer.on("echo-socket-updater-replay", (sender, data) => {
+
+            var jsonData = JSON.parse(data);
+
+
+            if (jsonData.errortype != null) {
+                loader.show();
+                loader.addClass("socket-error");
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "socket-error"));
+            } else {
+                if (loader.hasClass("socket-error")) {
+                    loader.hide();
+                    loader.removeClass("socket-error");
+                }
+            }
+
+            console.log(data);
+
+        });
+
+
+
+        $("#button-mi").on("click", function () {
+
+            ipcRenderer.send("minimalize-window", "Main");
+
+        });
+
+
+
+        $("#button-cl").on("click", function () {
+
+            ipcRenderer.send("close-window", "Main");
+
+        });
+
+    })(jQuery);
+</script>

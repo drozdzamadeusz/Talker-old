@@ -1,0 +1,498 @@
+﻿
+@{
+    ViewData["Title"] = "Chat";
+
+    var receiverId = Context.Request.Query["user"];
+
+    var selectedUserser = ViewData["SelectedUser"] as Talker.Models.DTO.User;
+}
+
+
+<div class="top-panel">
+    <div class="top-friend-container window-scrollable scrollable" id="top-friend-container"></div>
+
+    <div class="window-buttons main-window">
+        <div class="window-menu-area">
+            <div class=""></div>
+            <div class="window-buttons-contianer">
+                <div id="button-mi" class="window-button"><i class="zmdi zmdi-window-minimize"></i></div>
+                <div id="button-ma" class="window-button"><i class="zmdi zmdi-window-maximize"></i></div>
+                <div id="button-cl" class="window-button"><i class="zmdi zmdi-close"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="loader-container" id="loader" style="display:block;opacity:1.0;">
+    <div class="loader-content" id="loader-container" style="padding-top: 74px;">
+        <div class="lds-dual-ring" style=""></div>
+        <div class="lds-text" style="display:block;">Getting messages...</div>
+    </div>
+</div>
+
+    <div class="limiter">
+        <div class="container-login100 container-main container-chat">
+            <div class="wrap-login100 wrap-logged">
+
+                <div class="w-full friends-contacts-form user-panel-container" id="">
+
+                    <div class="messages-container">
+
+                        <ol class="messages" id="messages"></ol>
+
+                    </div>
+
+                </div>
+                <div class="upload-file-form" id="upload-file-form" style="display:none;">
+                    <div id="fine-uploader-manual-trigger"></div>
+                </div>
+                <div class="colorful-separator"></div>
+                <div class="controls chat-controls">
+
+                    <div class="chat-textarea">
+                        <textarea placeholder="Enter your message here..." rows="2" id="message-text"></textarea>
+                    </div>
+
+                    <a class="normal-btn-outline img-on-left send-attachment" id="send-emoji" href="#" style="margin-left: 2px;margin-right: 4px;">
+                        <i class="zmdi zmdi-mood send-att-icon" style="font-size: 22px!important;"></i>
+                    </a>
+
+                    <a class="normal-btn-outline img-on-left send-attachment" id="send-attachment" href="#">
+                        <i class="zmdi zmdi-attachment send-att-icon" style="font-size: 25px!important;transform: rotate(-220deg)!important;"></i>
+                    </a>
+
+                    <a class="normal-btn-outline img-on-left send-message" id="send-message" href="#">
+                        <i class="zmdi zmdi-mail-send" id="send-button-icon"></i>
+                        <div class="lds-dual-ring" style="display: none;" id="send-processing-ring"></div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+
+    (function ($) {
+
+        var receiverId = @receiverId;
+
+        const { ipcRenderer } = require("electron");
+
+
+        var channel = "Chat?user=" + receiverId + "&";
+
+        var receiverUser = JSON.parse('{"username": "@selectedUserser.username", "image": "@selectedUserser.image", "description": "@selectedUserser.description", "status": @selectedUserser.status}');
+
+        $("#top-friend-container").html(addFirendToContactsList(receiverUser, "chat-top-contact"));
+
+
+        var buttonIcon = $("#send-button-icon");
+        var processingRing = $("#send-processing-ring");
+
+        var loader = $('#loader');
+
+
+
+        function formatDate(date) {
+            var d = new Date(date);
+            return d.format("dddd, dd mmmm yyyy, HH:MM:ss");
+        }
+
+        function appendMessage(m) {
+            var seen = (m.seen == 1) ? ("Seen on " + formatDate(m.seenTime)) : "Unseen";
+
+            message = m.message.replace(/(?:\r\n|\r|\n)/g, '<br />');
+
+            if (m.receiverId != receiverId) {
+                result = '<li data-id="' + m.messageId + '"><span data-tippy-content="' + formatDate(m.addedTime) + '">' + message + '</span></li>';
+            } else {
+                result = '<li  class="mine" data-id="' + m.messageId + '"><span data-tippy-content="' + formatDate(m.addedTime) + '<br />' + seen + '">' + message + '</span></li>';
+
+            }
+
+            return result;
+        }
+
+
+        var noMessages = '<span class="no-messages-info"><i class="zmdi zmdi-comments"></i><span>You have not chatted yet</span></span>';
+
+        var messagesContainer = $('#messages');
+
+        var buttonIcon = $("#send-button-icon");
+        var processingRing = $("#send-processing-ring");
+
+
+        var lastMessage = null;
+        var firstReq = true;
+
+
+        var $sorted_items,
+            getSorted = function (selector, attrName) {
+                return $(
+                    $(selector).toArray().sort(function (a, b) {
+                        var aVal = parseInt(a.getAttribute(attrName)),
+                            bVal = parseInt(b.getAttribute(attrName));
+                        return aVal - bVal;
+                    })
+                );
+            };
+
+
+        ipcRenderer.on("new-messages-replay", (sender, data) => {
+
+            var dataJSON = JSON.parse(data);
+
+            console.log(data);
+
+            loader.hide();
+
+                dataJSON.forEach(
+                    e => {
+                            if (messagesContainer.find("li[data-id='" + e.messageId + "']").length < 1) {
+                                messagesContainer.append(appendMessage(e));
+
+                                $('#messages').html(getSorted('#messages li', 'data-id'));
+                            }
+                    });
+
+
+            $('.user-panel-container').scrollTop(messagesContainer[0].scrollHeight);
+
+            tippy('[data-tippy-content]', {
+                theme: 'light',
+                allowHTML: true,
+            });
+
+
+        });
+
+
+
+        ipcRenderer.on("request-messages-reply", (sender, data) => {
+
+            var dataJSON = JSON.parse(data);
+
+            console.log(data);
+
+            loader.hide();
+
+            if (Object.keys(dataJSON).length == 0) {
+
+                if (messagesContainer.find().length < 1 && messagesContainer.html() =="")
+                    messagesContainer.append(noMessages);
+
+            } else {
+                if (lastMessage == null) {
+                    messagesContainer.html("");
+                }
+                dataJSON.forEach(
+                    e => {
+                        if (lastMessage == null) {
+                            if (messagesContainer.find("li[data-id='" + e.messageId + "']").length < 1) {
+                                messagesContainer.append(appendMessage(e));
+                            }
+                        } else {
+                            if (lastMessage.messageId > e.messageId) {
+
+                                if (messagesContainer.find("li[data-id='" + e.messageId + "']").length < 1) {
+
+                                    var lastdiv = messagesContainer.find("li[data-id='" + lastMessage.messageId + "']");
+
+                                    $(appendMessage(e)).insertBefore(lastdiv);
+                                }
+                            }
+
+                        }
+                        lastMessage = e;
+                    });
+
+
+                if (firstReq) {
+                    $('.user-panel-container').scrollTop(messagesContainer[0].scrollHeight);
+                    firstReq = false;
+                }
+
+            }
+
+            tippy('[data-tippy-content]', {
+                theme: 'light',
+                allowHTML: true,
+            });
+
+
+            blockReq = false;
+
+        });
+
+        var lastReqMessageId = 0;
+        var blockReq = false;
+
+        async function getUserProfileData(lastMessageId) {
+
+            if (blockReq) return;
+
+            lastReqMessageId = lastMessageId;
+
+            var data = {"receiverId": receiverId, "lastMessageId": lastMessageId};
+
+            ipcRenderer.send("request-messages", data);
+        }
+
+        getUserProfileData(0);
+
+
+
+
+        $('.user-panel-container').scroll(function () {
+
+            if (blockReq) return;
+
+            console.log(lastMessage.messageId);
+
+            lastMessageEl = $('li[data-id="' + (lastMessage.messageId) + '"');
+
+            if (lastReqMessageId == lastMessage.messageId) return;
+
+
+
+            var top_of_element = lastMessageEl.offset().top;
+            var bottom_of_element = lastMessageEl.offset().top + lastMessageEl.outerHeight();
+
+            var bottom_of_screen = $(window).scrollTop() + $(window).innerHeight();
+            var top_of_screen = $(window).scrollTop();
+
+            if ((bottom_of_screen > top_of_element) && (top_of_screen < bottom_of_element)) {
+
+                getUserProfileData(lastMessage.messageId);
+                blockReq = true;
+
+            } else {
+            }
+        });
+        
+
+
+        
+        function sendMessage(text) {
+            var data = { "receiverId": receiverId, "message": text };
+
+            ipcRenderer.send("send-message", data);
+        }
+
+
+
+
+
+        buttonIcon.on("click", () => {
+
+            buttonIcon.hide();
+            processingRing.show();
+
+            var text = $('textarea#message-text').val();
+
+            sendMessage(text);
+
+            $('textarea#message-text').val("");
+
+        })
+
+
+        $('#message-text').keypress(function (e) {
+            if (event.keyCode == 13 && !event.shiftKey) {
+                e.preventDefault();
+                buttonIcon.click();
+            }
+        });
+
+
+
+
+
+        ipcRenderer.on("send-message-reply", (sender, data) => {
+
+            buttonIcon.show();
+            processingRing.hide();
+
+            if (messagesContainer.find("[data-no]").length > 0) messagesContainer.find("[data-no]").remove();
+
+            var e = JSON.parse(data);
+
+            console.log(data);
+
+            if (messagesContainer.find("li[data-id='" + e.messageId + "']").length < 1)
+                messagesContainer.append(appendMessage(e));
+
+            messagesContainer.html(getSorted('#messages li', 'data-id'));
+
+            $('.user-panel-container').scrollTop(messagesContainer[0].scrollHeight);
+
+
+            /*$('img').on('error', function () {
+                var alt = $(this).attr("alt");
+                if (alt == undefined) alt = "";
+                $(this).hide().after('<div class="borken-file"><i class="zmdi zmdi-file"></i> <span class="broken-file-text">' + alt + '<span></div>');
+            });*/
+
+            tippy('[data-tippy-content]', {
+                theme: 'light',
+                allowHTML: true,
+            });
+
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+        ////////////////////////////FILE UPLOADER
+        
+        var manualUploader = new qq.FineUploader({
+            element: document.getElementById('fine-uploader-manual-trigger'),
+            template: 'qq-template-manual-trigger',
+            request: {
+                endpoint: 'http://cdn-talker.eu-west-1.elasticbeanstalk.com/files/'
+            },
+            thumbnails: {
+                placeholders: {
+                    waitingPath: 'assets/fine-uploader/placeholders/waiting-generic.png',
+                    notAvailablePath: 'assets/fine-uploader/placeholders/not_available-generic.png'
+                }
+            },
+            autoUpload: false,
+            debug: true,
+            callbacks: {
+                onDelete: function (id) {
+                    // ...
+                },
+                onDeleteComplete: function (id, xhr, isError) {
+                    //...
+                },
+                onComplete: function (id, xhr, isError) {
+
+                    var server = 'http://cdn-talker.eu-west-1.elasticbeanstalk.com/data/';
+
+                    var imgFile = server + this.getUuid(id) + "/" + xhr;
+
+                    console.log(imgFile);
+
+                    sendMessage('<div class="attached-file"><a href="' + imgFile + '"><img src="' + imgFile + '" alt="' + xhr +'"/><br /><p class="attached-text">Download</p></a></div>');
+                }
+            }
+        });
+
+
+        qq(document.getElementById("trigger-upload")).attach("click", function () {
+            manualUploader.uploadStoredFiles();
+        });
+
+
+
+
+
+        $("#send-attachment").on("click", () => {
+            $("#upload-file-form").toggle();
+        });
+        
+
+
+        ////////////////////////////FILE UPLOADER
+
+
+
+
+
+
+
+
+
+
+        /*$("#send-attachment").on("click", () => {
+            alert("Nie pykło, nie działa, zbugowane :)\n\r\https://github.com/ElectronNET/Electron.NET/issues/389")
+        });*/
+
+
+        $(document).on("click", "a[href]", (e) => {
+
+            /*e.preventDefault();
+
+            alert(String(e.attr("href")));
+
+            if (String($(this).attr("href")) != "#" && String($(this).attr("href")) != "" && String($(this).attr("href")) != "/")
+                ipcRenderer.send("open-external-link", String($(this).attr("href")));*/
+
+
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        $("#button-mi").on("click", function () {
+
+            ipcRenderer.send("minimalize-window", channel);
+
+        });
+
+
+        $("#button-ma").on("click", function () {
+
+            ipcRenderer.send("maximize-window", channel);
+
+        });
+
+
+        $("#button-cl").on("click", function () {
+
+            ipcRenderer.send("close-window", channel);
+
+        });
+
+
+
+
+
+
+        /*$('img').on('error', function () {
+            var alt = $(this).attr("alt");
+            if (alt == undefined) alt = "";
+            $(this).hide().after('<div class="borken-file"><i class="zmdi zmdi-file"></i> <span class="broken-file-text">' + alt + '<span></div>');
+        });
+
+
+        $(document).on('error', 'img', function () {
+            var alt = $(this).attr("alt");
+            if (alt == undefined) alt = "";
+            $(this).hide().after('<div class="borken-file"><i class="zmdi zmdi-file"></i> <span class="broken-file-text">' + alt + '<span></div>');
+        });*/
+
+
+
+        $(document).on("click", "a[href]", function (e) {
+            e.preventDefault();
+
+            var link = $(this).attr("href");
+
+            if (link != "#" && link != "/" && link != undefined && (link.includes("https://") || link.includes("http://"))) { 
+                ipcRenderer.send("open-external-link", link);
+            }
+        });
+
+    })(jQuery);
+    </script>

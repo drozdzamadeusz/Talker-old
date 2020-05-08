@@ -1,0 +1,36 @@
+{
+  "executable": "Talker",
+  "splashscreen": {
+    "imageFile": "wwwroot/assets/images/splashscreen/talker.png"
+  },
+  "name": "Talker",
+  "author": "Amadeuesz Drożdż",
+  "description": "Simple communicator",
+  "singleInstance": false,
+  "PublishSingleFile": true,
+  "build": {
+    "appId": "com.Talker.app",
+    "productName": "Talker",
+    "copyright": "Copyright © 2020",
+    "buildVersion": "1.1.0",
+    "compression": "maximum",
+    "directories": {
+      "output": "../../../bin/Desktop"
+    },
+    "extraResources": [
+      {
+        "from": "./bin",
+        "to": "bin",
+        "filter": [ "**/*" ]
+      }
+    ],
+    "files": [
+      {
+        "from": "./ElectronHostHook/node_modules",
+        "to": "ElectronHostHook/node_modules",
+        "filter": [ "**/*" ]
+      },
+      "**/*"
+    ]
+  }
+}

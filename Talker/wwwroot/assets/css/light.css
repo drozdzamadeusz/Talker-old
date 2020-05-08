@@ -1,0 +1,39 @@
+
+
+.tippy-box[data-theme~=light] {
+    color: #2e6ea9;
+    background-color: #e2e2e2;
+    font-size: 11px;
+    font-family: Poppins-SemiBold;
+    opacity: 0.9;
+}
+
+    .tippy-box[data-theme~=light][data-placement^=top] > .tippy-arrow:before {
+        border-top-color: #cecece;
+        opacity: 0.9;
+    }
+
+    .tippy-box[data-theme~=light][data-placement^=bottom] > .tippy-arrow:before {
+        border-bottom-color: #cecece;
+        opacity: 0.9;
+    }
+
+    .tippy-box[data-theme~=light][data-placement^=left] > .tippy-arrow:before {
+        border-left-color: #cecece;
+        opacity: 0.9;
+    }
+
+    .tippy-box[data-theme~=light][data-placement^=right] > .tippy-arrow:before {
+        border-right-color: #cecece;
+        opacity: 0.9;
+    }
+
+    .tippy-box[data-theme~=light] > .tippy-backdrop {
+        background-color: #cecece;
+        opacity: 0.9;
+    }
+
+    .tippy-box[data-theme~=light] > .tippy-svg-arrow {
+        fill: #cecece;
+        opacity: 0.9;
+    }
