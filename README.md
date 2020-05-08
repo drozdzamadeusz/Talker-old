@@ -1,3 +1,3 @@
 # talker
 
-Simple application to communicate between two users
+Simple application to chat between two users
