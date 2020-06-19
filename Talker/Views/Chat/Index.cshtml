@@ -53,7 +53,7 @@
                         <textarea placeholder="Enter your message here..." rows="2" id="message-text"></textarea>
                     </div>
 
-                    <a class="normal-btn-outline img-on-left send-attachment" id="send-emoji" href="#" style="margin-left: 2px;margin-right: 4px;">
+                    <a class="normal-btn-outline img-on-left send-attachment" id="send-emoji" href="#" style="margin-left: 2px;margin-right: 4px;display:none;">
                         <i class="zmdi zmdi-mood send-att-icon" style="font-size: 22px!important;"></i>
                     </a>
 
@@ -326,28 +326,12 @@
 
             $('.user-panel-container').scrollTop(messagesContainer[0].scrollHeight);
 
-
-            /*$('img').on('error', function () {
-                var alt = $(this).attr("alt");
-                if (alt == undefined) alt = "";
-                $(this).hide().after('<div class="borken-file"><i class="zmdi zmdi-file"></i> <span class="broken-file-text">' + alt + '<span></div>');
-            });*/
-
             tippy('[data-tippy-content]', {
                 theme: 'light',
                 allowHTML: true,
             });
 
         });
-
-
-
-
-
-
-
-
-
 
 
 
@@ -432,18 +416,6 @@
         });
 
 
-
-
-
-
-
-
-
-
-
-
-
-
         $("#button-mi").on("click", function () {
 
             ipcRenderer.send("minimalize-window", channel);
@@ -463,10 +435,6 @@
             ipcRenderer.send("close-window", channel);
 
         });
-
-
-
-
 
 
         /*$('img').on('error', function () {

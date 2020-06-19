@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using ElectronNET.API;
 using ElectronNET.API.Entities;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using Talker.Controllers.Other;
@@ -16,23 +13,31 @@ using Talker.Models.DTO.Requests;
 
 namespace Talker.Controllers
 {
+
+    /// <summary>
+    /// 
+    /// Converts login data given by user and sends it to authorization model to verify credicals on server side 
+    /// Handles user authorization
+    /// This class inherits form AspNetCore Controller class:
+    /// A base class for MVC controller with view support.
+    /// 
+    /// Detailed Login View description:
+    /// Graphical interface used for logging into the chat platform - login, password text areas and login button
+    /// 
+    /// </summary>
     public class StartController : Controller
     {
 
+        private readonly string mainViewPath = ($"http://localhost:{BridgeSettings.WebPort}/Main");
+        private readonly string registerViewPath = ($"http://localhost:{BridgeSettings.WebPort}/Register");
 
-
-
-        string mainViewPath = ($"http://localhost:{BridgeSettings.WebPort}/Main");
-
-        string registerViewPath = ($"http://localhost:{BridgeSettings.WebPort}/Register");
-
-
-
+        /// <summary>
+        /// 
+        /// Method that opens Main Window of the program after successful authorization.
+        /// 
+        /// </summary>
         public async void openMainWindow(Token userToken)
         {
-
-            //var mainBrowserWindow = Electron.WindowManager.BrowserWindows.First();
-
 
             var browserWindow = await Electron.WindowManager.CreateWindowAsync(
                 new BrowserWindowOptions
@@ -48,26 +53,17 @@ namespace Talker.Controllers
                     MinWidth = 320,
 
                     MaxWidth = 600,
-
-
                     Maximizable = false,
 
                     WebPreferences = new WebPreferences
                     {
-                        /*NodeIntegration = true,*/
-
                         AllowRunningInsecureContent = true,
                         WebSecurity = false,
+                        DevTools = false
                     },
 
                 }
                 , (mainViewPath)) ;
-            /*browserWindow.OnMove += UpdateReply;
-            browserWindow.OnResize += UpdateReply;
-            browserWindow.OnClosed += WindowClosed;
-
-            browserWindow.OnFocus += () => Electron.IpcMain.Send(mainBrowserWindow, "listen-to-window-focus");
-            browserWindow.OnBlur += () => Electron.IpcMain.Send(mainBrowserWindow, "listen-to-window-blur");*/
 
 
             browserWindow.OnReadyToShow += () => browserWindow.Show();
@@ -75,27 +71,25 @@ namespace Talker.Controllers
 
         }
 
-        public IActionResult Index()
+
+        /// <summary>
+        /// 
+        ///  Asynchronous method that enrolls endpoints used in the login view.
+        /// 
+        /// </summary>
+        public async Task<IActionResult> IndexAsync()
         {
 
             if (HybridSupport.IsElectronActive)
             {
 
-
                 Electron.IpcMain.On("button-cl", async (args) => {
-
                     Electron.App.Quit();
-
                 });
-
-
-
-
 
 
                 Electron.IpcMain.On("open-register-dialog", async (args) =>
                 {
-
 
                     var bw = await HelperMethods.GetFinwodWindowAsync($"Register");
 
@@ -116,23 +110,18 @@ namespace Talker.Controllers
 
                                     MaxWidth = 600,
 
-
                                     Maximizable = false,
 
                                     WebPreferences = new WebPreferences
                                     {
-                                        /*NodeIntegration = true,*/
-
                                         AllowRunningInsecureContent = true,
                                         WebSecurity = false,
-
                                     },
 
                                 }
                                 , registerViewPath); ;
 
                         browserWindow.RemoveMenu();
-
                         browserWindow.OnReadyToShow += () => browserWindow.Show();
                     }
                     else
@@ -144,43 +133,23 @@ namespace Talker.Controllers
 
 
 
-
-
-
-
-
-
-
-
-
                 Electron.IpcMain.On("auth-login", async (data) =>
                 {
 
-
                     var eventResponse = JsonConvert.DeserializeObject<UserRequest>(data.ToString());
-
-                    //Console.WriteLine(eventResponse.username);
-
-
                     var mainWindow = Electron.WindowManager.BrowserWindows.First();
 
                     try
                     {
                         await SessionManager.UserLoginAsyncRequest(eventResponse);
-
                         await UserMainProfile.UserProfileAsyncRequest();
-
+                        
                         SessionManager.RootPageUrl = await mainWindow.WebContents.GetUrl();
-
-                        Console.WriteLine("ROOT URL " + SessionManager.RootPageUrl);
-
                         Electron.IpcMain.Send(mainWindow, "auth-login-reply", SessionManager.UserToken);
-
 
                         if (SessionManager.UserToken.token != null)
                         {
                             openMainWindow(SessionManager.UserToken);
-
                             mainWindow.Close();
                         }
 
@@ -195,11 +164,6 @@ namespace Talker.Controllers
 
 
 
-
-
-
-
-
                 Electron.IpcMain.On("close-window", async (args) =>
                 {
                 try
@@ -208,11 +172,9 @@ namespace Talker.Controllers
 
                     if (Convert.ToString(args).Contains("Chat")) {
 
-
                             string id = Convert.ToString(args).Replace("Chat?user=", "");
                             id = id.Replace("&", "");
                             Int32 user = Int32.Parse(id);
-
 
                             UserMainProfile.ClearMessagesWithSelectedUserAsyncRequest(new UserRequest { receiverId = user });
 
@@ -230,18 +192,12 @@ namespace Talker.Controllers
 
 
 
-
-
-
                 Electron.IpcMain.On("minimalize-window", async (args) =>
                 {
                     BrowserWindow window = await HelperMethods.GetFinwodWindowAsync(Convert.ToString(args));
                     window.Minimize();
 
                 });
-
-
-
 
 
 
@@ -267,21 +223,11 @@ namespace Talker.Controllers
             return View();
         }
 
-
-
-        private async void UpdateReply()
-        {
-            var browserWindow = Electron.WindowManager.BrowserWindows.Last();
-            var size = await browserWindow.GetSizeAsync();
-            var position = await browserWindow.GetPositionAsync();
-            string message = $"Size: {size[0]},{size[1]} Position: {position[0]},{position[1]}";
-
-            var mainWindow = Electron.WindowManager.BrowserWindows.First();
-            Electron.IpcMain.Send(mainWindow, "manage-window-reply", message);
-        }
-
-
-
+        /// <summary>
+        /// 
+        ///  The Developer Exception Page is used to get detailed stack traces for runtime view errors.
+        /// 
+        /// </summary>
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

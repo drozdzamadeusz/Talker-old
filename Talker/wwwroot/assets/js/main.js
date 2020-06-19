@@ -18,7 +18,7 @@
   
   
     /*==================================================================
-    [ Validate ]*/
+    [ Validate login and register form]*/
     var input = $('.validate-input .input100');
 
     $('.validate-form').on('submit',function(){

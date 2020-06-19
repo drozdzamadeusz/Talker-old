@@ -1,11 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Talker.Models.DTO.Requests;
 
 namespace Talker.Models.DTO
 {
+
+    /// <summary>
+    /// 
+    /// User's DTO contains information about one single message in the system.
+    /// This DTS's is a mirror image of DTS's stored on the server-site
+    /// For this reason, variable names are lowercase
+    /// 
+    /// </summary>
     public class Message
     {
 

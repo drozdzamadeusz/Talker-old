@@ -151,14 +151,15 @@
 
 
 
-        function userStatusIcon(statusNumber, isMainUser) {
+        function userStatusIcon(statusNumber, isContactUser) {
 
             var result = '<span class="';
-            if (isMainUser) {
-                result += 'contact-user-status ';
+
+            if (isContactUser) {
+                //result += 'contact-user-status ';
             }
 
-            result += 'status-';
+            result += ' status-';
 
             if (statusNumber == 0) {
                 cssClass = 'online';
@@ -211,24 +212,24 @@
             if (contact.image != null && contact.image != "") {
                 image = ("src", contact.image);
             } else {
-                image = "https://i.pravatar.cc/220";
+                image = "";
             }
 
 
             var status;
             if (contact.status != null && contact.status != "") {
-                status = (userStatusIcon(contact.status, false));
+                status = (userStatusIcon(contact.status, true));
             } else {
-                status = (userStatusIcon(0, false));
+                status = (userStatusIcon(0, true));
             }
 
 
             result += '<friend class="contact-item ' + addidionalCssClass + '" data-user-id="' + id + '">';
             result += '<div class="user-panel-container">';
-            result += '<div class="user-avatar">';
+            result += '<div class="user-avatar open-user-conversation" data-user-id="' + id + '">';
             result += '<img class="user-avatar-image" src="' + image + '">';
             result += '</div>';
-            result += '<div class="user-info-panel">';
+            result += '<div class="user-info-panel open-user-conversation" data-user-id="' + id + '">';
             result += '<div class="user-nick-title">';
             result += '<span class="user-nick-title-text">' + username + '</span>';
             result += '</div>';
@@ -241,10 +242,10 @@
             result += '<div class="user-control-buttons-panel">';
             result += '<ul>';
             result += '<li>';
-            result += '<a href="#" class="delete-user-from-list" data-user-id="' + id + '"><i class="zmdi zmdi-delete user-form-list-icon"></i> Remove friend</a>';
+            result += '<a href="#" data-remodal-target="remove-friend-modal" class="delete-user-from-list" data-user-username="' + username + '" data-user-id="' + id + '"><i class="zmdi zmdi-delete user-form-list-icon"></i> Remove friend</a>';
             result += '</li>';
             result += '<li>';
-            result += '<a href="#" class="block-user-from-list" data-user-id="' + id + '"><i class="zmdi zmdi-close-circle user-form-list-icon"></i> Block &amp; remove</a>';
+            result += '<a href="#" data-remodal-target="block-friend-modal" class="block-user-from-list" data-user-username="' + username + '" data-user-id="' + id + '"><i class="zmdi zmdi-close-circle user-form-list-icon"></i> Block &amp; remove</a>';
             result += '</li>';
             result += '</ul>';
             result += '</div>';
@@ -258,7 +259,7 @@
 
 
 
-        function showExceptionOnForm(error, message, type) {
+        function showExceptionOnForm(error, message, type, status) {
             var resultHTML = "";
 
             if (type == "default") {
@@ -272,7 +273,7 @@
                 resultHTML += '<div class="lds-dual-ring" style="display: none;"></div>';
                 resultHTML += '<div class="lds-text" style="display:block">';
                 resultHTML += '<i class="zmdi zmdi-alert-circle-o  error-inform-icon" style="color:#dc3545"></i>';
-                resultHTML += '<span class="error-text error-text-header">' + error + '</span>';
+                resultHTML += '<span class="error-text error-text-header">' + error + ((status != undefined)?' ('+status+')':"")+'</span>';
                 resultHTML += '<span class="error-text"font-size: 12px;>' + message + '</span>';
                 resultHTML += '<a href="#" id="error-ok-btn" class="error-ok-btn">OK</a>';;
                 resultHTML += '</div>';
@@ -282,7 +283,7 @@
                 resultHTML += '<div class="lds-dual-ring" style="display: none;"></div>';
                 resultHTML += '<div class="lds-text" style="display:block">';
                 resultHTML += '<i class="zmdi zmdi-info-outline error-inform-icon"></i>';
-                resultHTML += '<span class="error-text error-text-header">' + error + '</span>';
+                resultHTML += '<span class="error-text error-text-header">' + error + ((status != undefined) ? ' (' + status + ')' : "") + '</span>';
                 resultHTML += '<span class="error-text"font-size: 12px;>' + message + '</span>';
                 resultHTML += '<a href="#" id="error-ok-btn" class="error-ok-btn">OK</a>';;
                 resultHTML += '</div>';
@@ -293,7 +294,7 @@
                 resultHTML += '<div class="lds-text" style="display:block">';
                 resultHTML += '<i class="zmdi zmdi-input-power  error-inform-icon" style="color:#dc3545"></i>';
                 resultHTML += '<span class="error-text error-text-header">Unable to connect to the sync service</span>';
-                resultHTML += '<span class="error-text"font-size: 12px;>' + error + '</span>';
+                resultHTML += '<span class="error-text"font-size: 12px;>' + error + ((status != undefined) ? ' (' + status + ')' : "") + '</span>';
                 resultHTML += '<span class="qq-upload-spinner-selector qq-upload-spinner"><div class="lds-dual-ring" id="send-processing-ring" style=" margin-top: 7px; transform: translate(-10px, 4px);"></div><span style=" font-family: Poppins-Medium; font-size: 13px;">RECONNECTING</span> </span>';
                 resultHTML += '</div>';
 

@@ -42,6 +42,8 @@ body,
 html {
     height: 100%;
     font-family: Poppins-Regular, sans-serif;
+    overflow-y:hidden;
+
 }
 
 
@@ -1415,8 +1417,35 @@ h3 {
 
 
 .attached-text {
-    color: #fff;
+    color: #333;
     font-family: Poppins-Medium;
-    margin: 5px 1px 0 0;
+    margin: 4px 1px 0 0;
 }
 
+
+
+
+.user-description {
+    flex: 1;
+    width: 100%;
+}
+
+#main-user-description {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+
+#user-description-text-textarea {
+    flex: 1;
+    width: 100%;
+}
+
+#user-description-text {
+    display: flex;
+    flex: 1;
+}
+
+#user-description-text-textarea-info {
+    color: #666;
+}

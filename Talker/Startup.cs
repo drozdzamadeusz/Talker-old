@@ -5,12 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using ElectronNET.API;
 using ElectronNET.API.Entities;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
-using System.Reflection.Emit;
-using System.IO;
-using System;
-using System.Net.Sockets;
-using System.Text;
 
 namespace Talker
 {
@@ -60,11 +54,8 @@ namespace Talker
 
             if (HybridSupport.IsElectronActive)
             {
-                //Task.Run(() => CreateElectronWindowAsync());
                 CreateElectronWindowAsync();
             }
-
-
         }
 
 
@@ -84,14 +75,13 @@ namespace Talker
                 {
                     AllowRunningInsecureContent = true,
                     WebSecurity = true,
-                    NodeIntegration = true
+                    NodeIntegration = true,
+                    DevTools = true
                 },
 
-            });
+            }) ;
             MainWindow.OnReadyToShow += () => MainWindow.Show();
             MainWindow.SetTitle("Talker");
-
-
 
             var menu = new MenuItem[] {
                 new MenuItem
@@ -106,10 +96,8 @@ namespace Talker
                     }
                 }
             };
-
-            //Electron.Menu.SetApplicationMenu(menu);
-
+            Electron.Menu.SetApplicationMenu(menu);
         }
 
-}
+    }
 }

@@ -229,5 +229,24 @@
 .remodal {
     height: calc(100vh - 60px);
     max-width: 100vw;
-    width: calc(100vw - 28px);
+    width: calc(100vw - 20px);
+    z-index: 10;
+    position: absolute;
+}
+
+.remodal-cancel {
+    background: #fe6a6a;
+}
+
+.remodal-confirm {
+    background: #43B581;
+}
+
+    .remodal-confirm:hover, .remodal-confirm:focus {
+        background: #399e70;
+    }
+
+.remodal label {
+    font-size: 13px;
+    font-family: Poppins-Regular;
 }

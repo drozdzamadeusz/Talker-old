@@ -27,29 +27,27 @@
         <div class="wrap-login100 wrap-logged">
             <div class="user-panel-container">
                 <div class="user-avatar">
-                    <img class="user-avatar-image" id="user-avatar-image" src="https://i.pravatar.cc/200">
+                    <img class="user-avatar-image" id="user-avatar-image" src="">
                 </div>
                 <div class="user-info-panel ">
                     <div class="user-nick-title">
                         <span id="user-nick-title-text"></span>
                     </div>
-                    <div class="user-description text-left">
-                        <span id="user-description-text" class=""></span>
+                    <div class="user-description text-left" id="main-user-description">
+                        <span id="user-description-text"></span>
                     </div>
                 </div>
                 <div class="user-status-changer user-control-buttons">
                     <span class="status-down"><i class="zmdi zmdi-caret-down"></i></span>
-                    <!--<span class="status-online" id="user-status"><i class="zmdi zmdi-circle"></i></span>-->
-
 
                     <span class="user-status-holder" id="user-status-holder"></span>
-                    <div class=" user-control-buttons-panel">
+                    <div class="main-user-control-buttons-panel user-control-buttons-panel">
                         <ul>
-                            <li><a href="#" id="set-status-online" class="set-status-item"><i class="zmdi zmdi-circle"></i>Online</a></li>
-                            <li><a href="#" id="set-status-letstalk" class="set-status-item"><i class="zmdi zmdi-flower"></i>Let’s talk</a></li>
-                            <li><a href="#" id="set-status-idle" class="set-status-item"><i class="zmdi zmdi-brightness-2"></i>Idle</a></li>
-                            <li><a href="#" id="set-status-do-not-distirb" class="set-status-item"><i class="zmdi zmdi-minus-circle"></i>Do Not Disturb</a></li>
-                            <li><a href="#" id="set-status-invisible" class="set-status-item"><i class="zmdi zmdi-dot-circle"></i>Offline</a></li>
+                            <li><a href="#" id="set-status-online" class="set-status-item" data-status-no="0"><i class="zmdi zmdi-circle"></i>Online</a></li>
+                            <li><a href="#" id="set-status-letstalk" class="set-status-item" data-status-no="1"><i class="zmdi zmdi-flower"></i>Let’s talk</a></li>
+                            <li><a href="#" id="set-status-idle" class="set-status-item" data-status-no="2"><i class="zmdi zmdi-brightness-2"></i>Idle</a></li>
+                            <li><a href="#" id="set-status-do-not-distirb" class="set-status-item" data-status-no="3"><i class="zmdi zmdi-minus-circle"></i>Do Not Disturb</a></li>
+                            <li><a href="#" id="set-status-invisible" class="set-status-item" data-status-no="4"><i class="zmdi zmdi-dot-circle"></i>Invisible</a></li>
                         </ul>
                     </div>
                 </div>
@@ -79,6 +77,33 @@
     </div>
 </div>
 
+
+<div class="remodal" data-remodal-id="remove-friend-modal">
+    <button data-remodal-action="close" class="remodal-close"></button>
+    <h3>Remove a friend</h3>
+    <label>Are you sure you want to remove <span id="remove-friend-username"></span> from your friends list?</label>
+    <br><br>
+    <div class="modal-rigth-buttons">
+        <button data-remodal-action="confirm" class="remodal-confirm" id="remove-friend-btn-confirm">Delete user</button>
+        <button data-remodal-action="cancel" class="remodal-cancel" id="remove-friend-btn-cancel">Cancel</button>
+    </div>
+</div>
+
+<div class="remodal" data-remodal-id="block-friend-modal">
+    <button data-remodal-action="close" class="remodal-close"></button>
+    <h3>Block a friend</h3>
+    <label>Are you sure you want to block <span id="block-friend-username"></span>?</label>
+    <br>
+    <label style="color: var(--status-do-not-distirb);font-family: Poppins-Medium;font-size: 11px;">
+        <i class="zmdi zmdi-alert-triangle" style="font-size: 15px;"></i><span> Blocked user will not be able to send you messages. If you want to unblock a user, add them to your friends list</span>
+    </label>
+    <br><br>
+    <div class="modal-rigth-buttons">
+        <button data-remodal-action="confirm" class="remodal-confirm" id="block-friend-btn-confirm">Block user</button>
+        <button data-remodal-action="cancel" class="remodal-cancel" id="block-friend-btn-cancel">Cancel</button>
+    </div>
+</div>
+
 <script>
 
 
@@ -86,39 +111,31 @@
 
         const { ipcRenderer } = require("electron");
 
+        let loader = $('#loader');
+        let loaderContent = $("#loader-content");
 
-        var loader = $('#loader');
-        var loaderContent = $("#loader-content");
+        /* REMOVE FRIEND MODAL */
 
+        $(document).on('click', '[data-remodal-target=remove-friend-modal]', function () {
+            var username = ($(this).data("user-username"));
+            var id = ($(this).data("user-id"));
+            $("#remove-friend-username").html(username);
+            $("#remove-friend-btn-confirm").attr("data-user-id", id);
+        });
 
-        $(".delete-user-from-list").on("click", function (e) {
-            e.preventDefault();
-
-            var userId = $(this).attr('user-id');
-            alert(userId);
-            ipcRenderer.send("delete-from-friends", userId);
+        $(document).on('closing', '[data-remodal-id=remove-friend-modal]', function () {
+            $("#remove-friend-btn-confirm").attr("data-user-id", 0);
         });
 
 
-        ipcRenderer.on("delete-from-friends-reply", (sender, data) => {
-
-
+        $("#remove-friend-btn-confirm").on('click', function () {
+            var id = ($(this).data("user-id")); 
+            ipcRenderer.send("remove-friend", id);
         });
 
 
 
-        $(document).on('opening', '.remodal', function () {
-            $("#new-friend-input").val("");
-        });
-
-
-        $("#new-friend-btn-confirm").on("click", function () {
-            ipcRenderer.send("add-new-friend", $("#new-friend-input").val());
-        });
-
-
-        ipcRenderer.on("add-new-friend-reply", (sender, data) => {
-
+        ipcRenderer.on("remove-friend-reply", (sender, data) => {
             var jsonData = JSON.parse(data);
 
             if (jsonData.errortype != null) {
@@ -130,7 +147,87 @@
             loader.show();
 
             console.log(data);
+        });
 
+
+        /* END OF REMOVE FRIEND MODAL * /
+
+
+        /* BLOCK FRIEND MODAL */
+
+
+        $(document).on('click', '[data-remodal-target=block-friend-modal]', function () {
+            var username = ($(this).data("user-username"));
+            var id = ($(this).data("user-id"));
+            $("#block-friend-username").html(username);
+            $("#block-friend-btn-confirm").attr("data-user-id", id);
+        });
+
+
+        $(document).on('closing', '[data-remodal-id=block-friend-modal]', function () {
+            $("#block-friend-btn-confirm").attr("data-user-id", 0);
+        });
+
+
+        $("#block-friend-btn-confirm").on('click', function () {
+            var id = ($(this).data("user-id"));
+            ipcRenderer.send("block-friend", id);
+        });
+
+
+        ipcRenderer.on("block-friend-reply", (sender, data) => {
+            var jsonData = JSON.parse(data);
+
+            if (jsonData.errortype != null) {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "error", jsonData.status));
+            } else {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "info"));
+            }
+
+            loader.show();
+
+            console.log(data);
+        });
+
+
+        /* END OF BLOCK FRIEND MODAL * /
+
+
+
+        /* ADD A NEW FRIEND MODAL */
+
+        $(document).on('opening', '[data-remodal-id=add-a-friend-modal]', function () {
+            $("#new-friend-input").val("");
+        });
+
+
+        $("#new-friend-btn-confirm").on("click", function () {
+            ipcRenderer.send("add-new-friend", $("#new-friend-input").val());
+        });
+
+
+        ipcRenderer.on("add-new-friend-reply", (sender, data) => {
+            var jsonData = JSON.parse(data);
+
+            if (jsonData.errortype != null) {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "error", jsonData.status));
+            } else {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "info"));
+            }
+
+            loader.show();
+
+            console.log(data);
+        });
+
+        /* END OF ADD A NEW FRIEND MODAL */
+
+        let currentDescription = "";
+
+        let contactsContainer = $("#contacts-form");
+
+        ipcRenderer.on("user-profile-clear-contacts-list", (sender, data) => {
+            contactsContainer.html("");
         });
 
         ipcRenderer.on("user-profile-reply", (sender, data) => {
@@ -142,16 +239,17 @@
 
             $("#user-nick-title-text").html(profileData.username);
 
-            if (profileData.description != null) {
+            if (profileData.description != null && profileData.description != "") {
+                currentDescription = profileData.description;
                 $("#user-description-text").html(profileData.description);
             } else {
+                currentDescription = "";
                 $("#user-description-text").html("Enter your description here...");
             }
 
 
             if (profileData.image != null) {
                 $("#user-avatar-image").attr("src", profileData.image);
-            } else {
             }
 
             if (profileData.status != null) {
@@ -160,31 +258,29 @@
                 $("#user-status-holder").html(userStatusIcon(0, false));
             }
 
+            if (contactsContainer.find("friend").length != profileData.contacts.length) {
+                contactsContainer.html("");
+            }
+
             if (Object.keys(profileData.contacts).length == 0) {
-                if ($("#contacts-form").find(".no-contacts-info-container").length < 1)
-                    $("#contacts-form").append('<h5 class="no-contacts-info-container"><i class="zmdi zmdi-mood-bad no-contacts-icon"></i><br><span class="no-contacts-text">You have not added any friends yet</span></h5>');
+                if (contactsContainer.find(".no-contacts-info-container").length < 1)
+                    contactsContainer.append('<h5 class="no-contacts-info-container"><i class="zmdi zmdi-mood-bad no-contacts-icon"></i><br><span class="no-contacts-text">You have not added any friends yet</span></h5>');
             } else {
                 profileData.contacts.forEach(
                     e => {
-
-                        if ($("#contacts-form").find("friend[data-user-id=" + e.id + "]").length < 1)
-                            $("#contacts-form").append(addFirendToContactsList(e))
-
+                        if (contactsContainer.find("friend[data-user-id=" + e.id + "]").length < 1)
+                            contactsContainer.append(addFirendToContactsList(e))
                     });
             }
-
         });
 
 
 
-        $('body').on('click', '.contact-item', async function (e) {
+        $('body').on('click', '.open-user-conversation', async function (e) {
             var userId = $(this).data("user-id");
 
             ipcRenderer.send("show-user-conversation-chat", userId);
         });
-
-
-
 
 
         async function getUserProfileData() {
@@ -193,6 +289,105 @@
 
         getUserProfileData();
 
+
+        //** DESCRIPTION AND STATUS *///
+
+        function textAreaUnfocus() {
+
+            if (currentDescription != null && currentDescription != "") {
+                $('#main-user-description').html('<span id="user-description-text">' + currentDescription + '</span>');
+            } else {
+                $('#main-user-description').html('<span id="user-description-text">Enter your description here...</span>');
+            }
+            
+        }
+
+        function setNewDescription(newDescription) {
+
+            ipcRenderer.send("update-description", newDescription);
+
+            currentDescription = newDescription;
+
+            textAreaUnfocus();
+        }
+
+
+        ipcRenderer.on("update-description-reply", (sender, data) => {
+            var jsonData = JSON.parse(data);
+
+            if (jsonData.errortype != null) {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "error", jsonData.status));
+                loader.show();
+                console.log(data);
+            } else {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "info"));
+            }
+        });
+
+        $(document).on('click', '#user-description-text', function () {
+
+            var maxLen = 120;
+
+            $('#main-user-description').html('<textarea id="user-description-text-textarea" placeholder="" rows="2">' + currentDescription + '</textarea><span style="display:block;" id="user-description-text-textarea-info"><i class="zmdi zmdi-info"></i><span> Press enter to confirm, unfocus text input to cancel</span></span><span style="display:block;" id="user-description-text-textarea-info-chars"></span>');
+            $('#user-description-text-textarea').focus();
+
+            $("#user-description-text-textarea").keypress(function (e) {
+                var code = (e.keyCode ? e.keyCode : e.which);
+                if (code == 13) {
+                    setNewDescription($('#user-description-text-textarea').val());
+                }
+
+            });
+
+
+            $("#user-description-text-textarea").keydown(function (e) {
+                var Length = $(this).val().length;
+                var AmountLeft = maxLen - Length;
+                $('#user-description-text-textarea-info-chars').html(AmountLeft + " characters left");
+                if (Length > maxLen && e.keyCode != 8) {
+                    e.preventDefault();
+                }
+            });
+
+
+            $("#user-description-text-textarea").on('blur', function () {
+                textAreaUnfocus();
+            });
+
+        });
+
+        $(".user-status-changer").hover(function () {
+            $('.main-user-control-buttons-panel').show();
+        }, function () {
+            $('.main-user-control-buttons-panel').hide();
+        });
+
+        $(".set-status-item").on('click', function () {
+
+            var newStatus = $(this).data("status-no");
+
+            $('.main-user-control-buttons-panel').hide();
+
+            ipcRenderer.send("update-status", newStatus);
+
+            $("#user-status-holder").html(userStatusIcon(newStatus, false));
+        });
+
+
+        ipcRenderer.on("update-status-reply", (sender, data)  => {
+            var jsonData = JSON.parse(data);
+
+            if (jsonData.errortype != null) {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "error", jsonData.status));
+                loader.show();
+                console.log(data);
+            } else {
+                loaderContent.html(showExceptionOnForm(jsonData.error, jsonData.message, "info"));
+            }
+        });
+
+
+        //** END OF DESCRIPTION AND STATUS *///
 
 
         let echoSocketUpdaterInit = async () => {

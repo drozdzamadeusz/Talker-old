@@ -1,57 +1,69 @@
 ﻿using System;
-using System.IO;
-using System.Net;
 using System.Text;
 using System.Net.Sockets;
-using System.Threading;
 
 namespace Talker.Models
 {
+
+    /// <summary>
+    /// 
+    /// Stores the methods responsible for connecting the program to socket server in program
+    /// 
+    /// </summary>
     public class SockerServerHelper
     {
+        /// <summary>
+        /// 
+        /// Internet address of tcp heardbeart sever
+        /// 
+        /// </summary>
+        private const string SocketServerIpAddress = "talkerapi-env.eba-banadszz.eu-west-1.elasticbeanstalk.com";
 
-        const string socketServerIpAddress = "talkerapi-env.eba-banadszz.eu-west-1.elasticbeanstalk.com";
-        const int socketServerPort = 6789;
+        /// <summary>
+        /// 
+        /// Port number of tcp heardbeart sever
+        /// 
+        /// </summary>
+        private const int SocketServerPort = 6789;
 
-
+        /// <summary>
+        /// 
+        /// Name of the user whose information about we want to get
+        /// 
+        /// </summary>
         public int UserId;
 
-        //public SimpleTcpClient Client;
-
+        /// <summary>
+        /// 
+        /// Instance of System Net cliecnt to allow the porgram to estabish tcp connections
+        /// 
+        /// </summary>
         public TcpClient Client;
 
+        /// <summary>
+        /// 
+        /// The constructor initializes the variables required to send tcp requerst.
+        /// 
+        /// </summary>
+        /// <param name="userId">Specify the user to whom the request applies</param>
         public SockerServerHelper(int userId)
         {
             UserId = userId;
             Client = null;
         }
 
-
+        /// <summary>
+        /// 
+        /// Method establishes connection between client and tcp heartbeat server
+        /// 
+        /// </summary>
         public bool EstablishConnection()
         {
-            /*if (Client != null && Client.TcpClient.Connected) return true;
-
-            Client = new SimpleTcpClient().Connect(socketServerIpAddress, socketServerPort);
-
-            Client.StringEncoder = System.Text.ASCIIEncoding.UTF8;
-
-            return Client.TcpClient.Connected;*/
-
-
-
-
-            /*if (Client != null && Client.Connected) return true;
-
-            Client = new TcpClient(socketServerIpAddress, socketServerPort);*/
-
 
             if (Client != null && Client.Connected) return true;
-
-
             Client = new TcpClient();
 
-
-            var result = Client.BeginConnect(socketServerIpAddress, socketServerPort, null, null);
+            var result = Client.BeginConnect(SocketServerIpAddress, SocketServerPort, null, null);
 
             var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(1));
 
@@ -60,11 +72,16 @@ namespace Talker.Models
                 throw new Exception("Failed to connect.");
             }
 
-
             return Client.Connected; 
         }
 
 
+        /// <summary>
+        /// Sends request to tcp echo server to get informtions related with user using tcp connection
+        /// - such as new messages or changes of friends status.
+        /// These messages don’t  need to be encrypted because they don't contain any crucial data 
+        /// An error will be thrown after one second withou response
+        /// </summary>
         public string CheckNewChanges()
         {
             var textToSend = $"status;{UserId};{DateTime.Now.ToFileTime()};\r\n";
@@ -72,23 +89,21 @@ namespace Talker.Models
             NetworkStream nwStream = Client.GetStream();
             byte[] bytesToSend = ASCIIEncoding.UTF8.GetBytes(textToSend);
 
-            //---send the text---
-            //Console.WriteLine("Sending : " + textToSend);
-
+            //---send the text to the tcp server ---
             nwStream.WriteTimeout = 1000;
             nwStream.Write(bytesToSend, 0, bytesToSend.Length);
-
 
             //---read back the text---
             byte[] bytesToRead = new byte[Client.ReceiveBufferSize];
             int bytesRead = nwStream.Read(bytesToRead, 0, Client.ReceiveBufferSize);
-            //Console.WriteLine("Received : " + Encoding.UTF8.GetString(bytesToRead, 0, bytesRead));
 
             return Encoding.ASCII.GetString(bytesToRead, 0, bytesRead);
         }
 
 
-
+        /// <summary>
+        /// Disconects from tcp heartbeat server. 
+        /// </summary>
         public void Disconnect()
         {
             Client.Close();

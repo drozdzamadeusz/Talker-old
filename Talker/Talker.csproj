@@ -24,7 +24,7 @@
     <None Include="wwwroot\assets\remodal-master\src\remodal.js" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="ElectronNET.API" Version="8.31.1" />
+    <PackageReference Include="ElectronNET.API" Version="8.31.2" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.3" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.2" />

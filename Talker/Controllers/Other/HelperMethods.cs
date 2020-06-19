@@ -9,9 +9,20 @@ using Talker.Models.DTO;
 
 namespace Talker.Controllers.Other
 {
+
+    /// <summary>
+    /// 
+    /// Holds additional methods used in controller
+    /// 
+    /// </summary>
     public static class HelperMethods
     {
 
+        /// <summary>
+        /// 
+        /// Displays error message in GUI
+        /// 
+        /// </summary>
         public static void DisplayErrorMessage(Exception exception, BrowserWindow browserWindow, string channel, bool displayDislogError)
         {
 
@@ -56,7 +67,13 @@ namespace Talker.Controllers.Other
                     inner = inner.InnerException;
                 }
 
-                Electron.IpcMain.Send(browserWindow, channel, JsonConvert.SerializeObject(new RestStatus { errortype = "application", error = exception.Message, message = ret }).ToString());
+                Electron.IpcMain.Send(browserWindow, channel, JsonConvert.SerializeObject(
+                    new RestStatus {
+                        errortype = "application",
+                        error = exception.Message,
+                        message = ret}
+                    ).ToString()
+                );
 
                 if (displayDislogError) Electron.Dialog.ShowErrorBox(exception.Message, ret);
 
@@ -79,13 +96,10 @@ namespace Talker.Controllers.Other
                 BrowserWindow bw = browserWindows[i];
                 string url = await bw.WebContents.GetUrl();
 
-                Console.WriteLine($">>>>>Current URL:{url} <<<<<<>>>>> looking for url: {currentWindowUrl}");
-
                 if (url.Contains(currentWindowUrl))
                 {
                     return bw;
                 }
-
             }
 
             return null;

@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Talker.Models.DTO
 {
+    /// <summary>
+    /// 
+    /// User's DTO contains information about one user in the system
+    /// This DTS's is a mirror image of DTS's stored on the server-site
+    /// For this reason, variable names are lowercase
+    /// 
+    /// </summary>
     public class User
     {
         public Int32 id { get; set; }
         public string username { get; set; }
-
 
         public string email { get; set; }
         public string image { get; set; }
