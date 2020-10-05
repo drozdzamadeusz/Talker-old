@@ -7,3 +7,7 @@ Simple network application to chat between two users
 ```
 docs and screens/Fianl Report.pdf
 ```
+## Project video presentatnion in:
+```
+docs and screens/other files/prezentacja_pl.mkv
+```
